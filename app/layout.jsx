@@ -2,7 +2,7 @@ import './globals.css';
 
 export const metadata = {
   title: 'Satvic Movement — Livestock Emissions, Made Visible | Satvic Movement',
-  description: 'The Satvic Livestock Emissions Card helps diners understand food impact while earning discounts and points at participating plant-based restaurants.',
+  description: 'A mindful space to share moments, nourishment, and inspiration with the Satvic community.',
 };
 
 export default function RootLayout({ children }) {
