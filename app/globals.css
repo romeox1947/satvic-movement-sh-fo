@@ -216,3 +216,8 @@ h1,h2,h3,h4,h5,h6{font-family:"Season Mix",Georgia,serif}
 .hero-wash{display:none}
 .restaurant-roll{position:relative;z-index:1;background:transparent;border:0}
 @media(max-width:650px){.hero-shell{padding-bottom:32px;background-image:radial-gradient(ellipse 96% 31% at 50% 22%,rgba(117,184,170,.97) 0%,rgba(143,200,188,.85) 46%,rgba(174,218,208,.46) 78%,transparent 100%),radial-gradient(ellipse 116% 38% at 50% 57%,rgba(171,216,205,.88) 0%,rgba(197,229,220,.68) 50%,rgba(224,240,234,.4) 77%,transparent 100%),linear-gradient(180deg,#fbfcfa 0%,#fff 100%)}}
+/* Finish the hero on clean white, not the warm off-white site canvas. */
+:root{background:#fff;--paper:#fff}
+body{background:#fff}
+.hero-shell{padding-bottom:140px;background-color:#fff;background-image:linear-gradient(180deg,transparent 0%,transparent 84%,rgba(255,255,255,.72) 94%,#fff 100%),radial-gradient(ellipse 52% 40% at 50% 21%,rgba(117,184,170,.98) 0%,rgba(143,200,188,.86) 41%,rgba(174,218,208,.48) 72%,transparent 100%),radial-gradient(ellipse 69% 47% at 50% 59%,rgba(171,216,205,.88) 0%,rgba(197,229,220,.69) 48%,rgba(224,240,234,.42) 75%,transparent 100%),linear-gradient(180deg,#fbfcfa 0%,#fff 100%)}
+@media(max-width:650px){.hero-shell{padding-bottom:120px;background-image:linear-gradient(180deg,transparent 0%,transparent 84%,rgba(255,255,255,.72) 94%,#fff 100%),radial-gradient(ellipse 96% 31% at 50% 22%,rgba(117,184,170,.97) 0%,rgba(143,200,188,.85) 46%,rgba(174,218,208,.46) 78%,transparent 100%),radial-gradient(ellipse 116% 38% at 50% 57%,rgba(171,216,205,.88) 0%,rgba(197,229,220,.68) 50%,rgba(224,240,234,.4) 77%,transparent 100%),linear-gradient(180deg,#fbfcfa 0%,#fff 100%)}}
