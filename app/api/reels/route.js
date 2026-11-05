@@ -13,9 +13,10 @@ async function collect(dir = root, items = []) {
     else if (videoExtensions.has(path.extname(entry.name).toLowerCase())) {
       const relative = path.relative(path.join(process.cwd(), 'public'), absolute).split(path.sep).join('/');
       const stem = path.basename(entry.name, path.extname(entry.name));
-      const parts = stem.split('_');
-      const creator = parts.length > 3 ? parts.slice(3).join('.') : 'satvic.community';
-      items.push({ src: `/${relative}`, title: parts.slice(0, 3).join(' '), creator, place: path.basename(path.dirname(absolute)), video: `/${relative}` });
+      const match = stem.match(/^(.*?)_(\d+)_(.+)$/);
+      const title = match ? `${match[1].replaceAll('_', ' ')} ${match[2]}` : stem.replaceAll('_', ' ');
+      const creator = match?.[3].replace(/_+$/, '') || 'satvic.community';
+      items.push({ src: `/${relative}`, title, creator, place: path.basename(path.dirname(absolute)), city: 'Pune', video: `/${relative}` });
     }
   }
   return items;
