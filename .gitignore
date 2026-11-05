@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+build/
+.vercel/
+coverage/
+*.log
+.env*
+!.env.example
+matter-font-family/
+season-font-family/
