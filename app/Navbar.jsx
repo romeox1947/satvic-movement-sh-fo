@@ -5,10 +5,9 @@ import { ArrowRight, ArrowUpRight, Menu } from 'lucide-react';
 
 const links = [
   ['The concept', '#concept'],
-  ['Carbon card', '#carbon-card'],
-  ['How it works', '#how-it-works'],
+  ['Livestock emissions card', '#satvic-rewards-card'],
   ['Our impact', '#impact'],
-  ['Partnerships', '#partners'],
+  ['Partnerships', '#partnerships'],
 ];
 
 function Brand() {
@@ -33,15 +32,15 @@ export default function Navbar() {
           {links.map(([label, href]) => <a key={label} href={href}>{label}</a>)}
         </nav>
         <div className="nav-actions">
-          <a className="nav-cta" href="#join">Join the movement</a>
-          <a className="nav-secondary" href="mailto:hello@sattvicmovement.example">Contact us</a>
+          <a className="nav-cta" href="https://satvicmovement.org/" target="_blank" rel="noreferrer">Join the movement</a>
+          <a className="nav-secondary" href="https://satvicmovement.org/" target="_blank" rel="noreferrer">Contact us</a>
         </div>
         <details className="mobile-nav">
           <summary aria-label="Open navigation"><Menu /></summary>
           <nav className="mobile-nav-panel" aria-label="Mobile navigation">
             {links.map(([label, href]) => <a key={label} href={href}>{label}<ArrowRight size={14} /></a>)}
-            <a href="#join">Join the movement<ArrowUpRight size={14} /></a>
-            <a href="mailto:hello@sattvicmovement.example">Contact us<ArrowUpRight size={14} /></a>
+            <a href="https://satvicmovement.org/" target="_blank" rel="noreferrer">Join the movement<ArrowUpRight size={14} /></a>
+            <a href="https://satvicmovement.org/" target="_blank" rel="noreferrer">Contact us<ArrowUpRight size={14} /></a>
           </nav>
         </details>
       </div>

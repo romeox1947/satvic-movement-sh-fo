@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Satvic Movement — What If Every Meal Had a Carbon Footprint?',
-  description: 'Satvic Movement is bringing carbon impact awareness to everyday food choices through the upcoming Satvic Carbon Emission Card.',
+  title: 'Satvic Movement — Livestock Emissions, Made Visible | Satvic Movement',
+  description: 'The Satvic Livestock Emissions Card helps diners understand food impact while earning discounts and points at participating plant-based restaurants.',
 };
 
 export default function RootLayout({ children }) {
