@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Heart, MessageCircle, Send, Bookmark, Plus, House, Search, CirclePlus, UsersRound, Leaf, MoreHorizontal, Clapperboard, UserRound } from 'lucide-react';
+import { Heart, MessageCircle, Send, Bookmark, Plus, House, Search, CirclePlus, UsersRound, Leaf, MoreHorizontal, Clapperboard, UserRound, Signal, Wifi, BatteryFull } from 'lucide-react';
 
 const ReelsScreen = dynamic(() => import('./ReelsScreen'), { ssr: false, loading: () => <section className="reels-loading">Loading reels…</section> });
 const ExploreScreen = dynamic(() => import('./ExploreScreen'), { ssr: false, loading: () => <section className="explore-loading">Loading Pune…</section> });
@@ -40,6 +40,19 @@ export default function Page() {
   const [active, setActive] = useState('Home');
   const [previewReel, setPreviewReel] = useState(null);
   const [selectedReel, setSelectedReel] = useState(null);
+  const [insidePhoneFrame, setInsidePhoneFrame] = useState(false);
+  useEffect(() => {
+    const framed = window.self !== window.top;
+    setInsidePhoneFrame(framed);
+    if (framed) {
+      document.documentElement.classList.add('iphone-preview');
+      document.body.classList.add('iphone-preview');
+    }
+    return () => {
+      document.documentElement.classList.remove('iphone-preview');
+      document.body.classList.remove('iphone-preview');
+    };
+  }, []);
   function navTo(label) {
     if (label === 'Reels') setSelectedReel(null);
     setActive(label);
@@ -47,6 +60,7 @@ export default function Page() {
   }
   function openExploreReel(reel) { setSelectedReel(reel); setActive('Reels'); }
   return <main className="social-app">
+    {insidePhoneFrame && <div className="phone-status-bar"><span>9:41</span><span><Signal size={13}/><Wifi size={14}/><BatteryFull size={17}/></span></div>}
     <header className="topbar"><a href="#home" className="wordmark">satvic</a><div className="top-actions"><button className="icon-button" aria-label="Activity"><Heart size={22}/></button><button className="icon-button messages" aria-label="Messages"><Send size={21}/></button></div></header>
     <input id="reel-upload" className="visually-hidden" type="file" accept="video/*" onChange={event => { const file = event.target.files?.[0]; if (file) { setPreviewReel({ title: file.name.replace(/\.[^.]+$/, ''), creator: 'you', video: URL.createObjectURL(file), place: 'Your new reel' }); setActive('Reels'); } }} />
     {active === 'Reels' ? <ReelsScreen previewReel={previewReel} selectedReel={selectedReel} onVisit={() => setActive('Search')} /> : active === 'Search' ? <ExploreScreen onOpenReel={openExploreReel} /> : active === 'Home' ? <><section className="stories" aria-label="Stories"><div className="stories-row">{stories.map((story) => <button className="story" key={story.name}><span className={`story-ring ${story.own ? 'own' : ''}`}><Avatar image={story.image} /></span><span className="story-name">{story.own ? 'Your story' : story.name}</span>{story.own && <span className="story-add"><Plus size={12}/></span>}</button>)}</div></section><div className="feed-label"><span>From your community</span><button>For you <span>⌄</span></button></div><section className="feed">{posts.map(post => <FeedPost key={post.name} post={post}/>)}</section></> : <section className="simple-tab"><div className="simple-tab-icon">{active === 'Community' ? <UsersRound size={28}/> : active === 'Account' ? <UserRound size={28}/> : <CirclePlus size={28}/>}</div><h1>{active}</h1><p>{active === 'Community' ? 'Find mindful places, people, and experiences shared by the Satvic community.' : active === 'Account' ? 'Your Satvic profile and saved moments.' : 'Choose a video to share with the community.'}</p>{active === 'Upload' && <button className="upload-cta" onClick={() => document.getElementById('reel-upload')?.click()}><Plus size={18}/> Choose a video</button>}</section>}
