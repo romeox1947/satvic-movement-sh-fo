@@ -11,6 +11,8 @@ const demoArai = {
   cover: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1000&q=85',
 };
 
+let activeReel = null;
+
 function Avatar({ image }) {
   return <span className="avatar" style={{ backgroundImage: `url(https://images.unsplash.com/${image}?auto=format&fit=crop&w=120&h=120&q=80)` }} />;
 }
@@ -27,15 +29,26 @@ function ReelCard({ reel }) {
     const scrollArea = video.closest('.reels-scroll');
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+        if (activeReel && activeReel.video !== video) {
+          activeReel.video.pause();
+          activeReel.video.muted = true;
+          activeReel.resetMute();
+        }
+        activeReel = { video, resetMute: () => setMuted(true) };
         video.play().catch(() => {});
       } else {
         video.pause();
+        video.muted = true;
+        setMuted(true);
+        if (activeReel?.video === video) activeReel = null;
       }
     }, { root: scrollArea, threshold: [0, 0.6, 1] });
     observer.observe(video);
     return () => {
       observer.disconnect();
       video.pause();
+      video.muted = true;
+      if (activeReel?.video === video) activeReel = null;
     };
   }, [reel.video]);
 

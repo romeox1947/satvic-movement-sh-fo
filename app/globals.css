@@ -8,3 +8,8 @@
 /* Lift all reel actions clear above the fixed bottom bar on short phone viewports. */
 .reel-actions{bottom:clamp(190px,27svh,230px)!important;z-index:8}
 .reels-loading{height:calc(100svh - 65px);display:grid;place-items:center;color:#637563;font-size:13px;background:#f7f7ef}
+/* Keep the app shell flush with the top edge; the old desktop frame padding left a blank band above the header. */
+@media(min-width:700px){body{padding-top:0}}
+/* Mobile webview was reserving extra top room before the header. */
+@media(max-width:699px){body{padding-top:0!important}.social-app{margin-top:-16px!important}.topbar{height:52px}}
+@media(min-width:700px){body{padding-top:0!important}}
