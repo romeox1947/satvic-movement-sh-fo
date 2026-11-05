@@ -1,7 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Heart, MessageCircle, Send, Bookmark, Plus, House, Search, CirclePlus, UsersRound, Leaf, MoreHorizontal, Clapperboard, MapPin, UserRound, Play } from 'lucide-react';
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
+import { Heart, MessageCircle, Send, Bookmark, Plus, House, CirclePlus, UsersRound, Leaf, MoreHorizontal, Clapperboard, UserRound } from 'lucide-react';
+
+const ReelsScreen = dynamic(() => import('./ReelsScreen'), { ssr: false, loading: () => <section className="reels-loading">Loading reels…</section> });
 
 const stories = [
   { name: 'Your day', image: '', own: true },
@@ -32,24 +35,9 @@ function FeedPost({ post }) {
   </article>;
 }
 
-function ReelCard({ reel }) {
-  const [liked, setLiked] = useState(false);
-  const [following, setFollowing] = useState(false);
-  return <article className="reel">
-    {reel.video ? <video className="reel-media" src={reel.video} playsInline loop autoPlay muted /> : <div className="reel-media reel-cover" style={{ backgroundImage: `url(${reel.cover})` }} />}
-    <div className="reel-shade" />
-    <div className="reel-top"><div className="reel-creator"><Avatar image={reel.avatar || 'photo-1500648767791-00dcc994a43e'}/><div><strong>@{reel.creator}</strong><span>{reel.place}</span></div></div><button className={`follow-button ${following ? 'following' : ''}`} onClick={() => setFollowing(!following)}>{following ? 'Following' : 'Follow'}</button></div>
-    <div className="reel-meta"><span><MapPin size={14}/>{reel.title}</span><p>{reel.caption || 'A quiet moment in nature. Take a breath and enjoy the view. 🌿'}</p></div>
-    <div className="reel-actions"><button className={liked ? 'reel-liked' : ''} onClick={() => setLiked(!liked)} aria-label={liked ? 'Unlike reel' : 'Like reel'}><Heart size={27} fill={liked ? 'currentColor' : 'none'}/><span>{liked ? '1.3k' : reel.likes || '1.2k'}</span></button><button aria-label="Comments"><MessageCircle size={25}/><span>36</span></button><button aria-label="Share reel" onClick={() => navigator.share?.({ title: reel.title, url: window.location.href })}><Send size={23}/><span>Share</span></button></div>
-  </article>;
-}
-
 export default function Page() {
   const [active, setActive] = useState('Home');
-  const [reels, setReels] = useState([]);
   const [previewReel, setPreviewReel] = useState(null);
-  useEffect(() => { fetch('/api/reels').then(response => response.json()).then(data => setReels(data.reels || [])).catch(() => {}); }, []);
-  const shownReels = previewReel ? [previewReel, ...reels] : reels;
   function navTo(label) {
     setActive(label);
     if (label === 'Upload') document.getElementById('reel-upload')?.click();
@@ -57,12 +45,7 @@ export default function Page() {
   return <main className="social-app">
     <header className="topbar"><a href="#home" className="wordmark">satvic</a><div className="top-actions"><button className="icon-button" aria-label="Activity"><Heart size={22}/></button><button className="icon-button messages" aria-label="Messages"><Send size={21}/></button></div></header>
     <input id="reel-upload" className="visually-hidden" type="file" accept="video/*" onChange={event => { const file = event.target.files?.[0]; if (file) { setPreviewReel({ title: file.name.replace(/\.[^.]+$/, ''), creator: 'you', video: URL.createObjectURL(file), place: 'Your new reel' }); setActive('Reels'); } }} />
-    {active === 'Reels' ? <section className="reels-view" aria-label="Reels">
-      <div className="reels-scroll">
-        {shownReels.length ? shownReels.map((reel, index) => <ReelCard reel={reel} key={`${reel.src || reel.video}-${index}`} />) : <ReelCard reel={{ title: 'ARAI Hills · 1', creator: 'what.on.more', place: 'Vetal Tekdi (ARAI Hills)', caption: 'A little escape into the hills. 🌿', cover: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1000&q=85' }} />}
-      </div>
-      <span className="reels-hint"><Play size={12} fill="currentColor"/> Swipe up for more</span>
-    </section> : active === 'Home' ? <><section className="stories" aria-label="Stories"><div className="stories-row">{stories.map((story) => <button className="story" key={story.name}><span className={`story-ring ${story.own ? 'own' : ''}`}><Avatar image={story.image} /></span><span className="story-name">{story.own ? 'Your story' : story.name}</span>{story.own && <span className="story-add"><Plus size={12}/></span>}</button>)}</div></section><div className="feed-label"><span>From your community</span><button>For you <span>⌄</span></button></div><section className="feed">{posts.map(post => <FeedPost key={post.name} post={post}/>)}</section></> : <section className="simple-tab"><div className="simple-tab-icon">{active === 'Community' ? <UsersRound size={28}/> : active === 'Account' ? <UserRound size={28}/> : <CirclePlus size={28}/>}</div><h1>{active}</h1><p>{active === 'Community' ? 'Find mindful places, people, and experiences shared by the Satvic community.' : active === 'Account' ? 'Your Satvic profile and saved moments.' : 'Choose a video to share with the community.'}</p>{active === 'Upload' && <button className="upload-cta" onClick={() => document.getElementById('reel-upload')?.click()}><Plus size={18}/> Choose a video</button>}</section>}
+    {active === 'Reels' ? <ReelsScreen previewReel={previewReel} /> : active === 'Home' ? <><section className="stories" aria-label="Stories"><div className="stories-row">{stories.map((story) => <button className="story" key={story.name}><span className={`story-ring ${story.own ? 'own' : ''}`}><Avatar image={story.image} /></span><span className="story-name">{story.own ? 'Your story' : story.name}</span>{story.own && <span className="story-add"><Plus size={12}/></span>}</button>)}</div></section><div className="feed-label"><span>From your community</span><button>For you <span>⌄</span></button></div><section className="feed">{posts.map(post => <FeedPost key={post.name} post={post}/>)}</section></> : <section className="simple-tab"><div className="simple-tab-icon">{active === 'Community' ? <UsersRound size={28}/> : active === 'Account' ? <UserRound size={28}/> : <CirclePlus size={28}/>}</div><h1>{active}</h1><p>{active === 'Community' ? 'Find mindful places, people, and experiences shared by the Satvic community.' : active === 'Account' ? 'Your Satvic profile and saved moments.' : 'Choose a video to share with the community.'}</p>{active === 'Upload' && <button className="upload-cta" onClick={() => document.getElementById('reel-upload')?.click()}><Plus size={18}/> Choose a video</button>}</section>}
     <nav className="bottom-nav" aria-label="Main navigation">{[[House,'Home'],[UsersRound,'Community'],[CirclePlus,'Upload'],[Clapperboard,'Reels'],[null,'Account']].map(([Icon,label]) => <button key={label} onClick={() => navTo(label)} className={active === label ? 'selected' : ''} aria-label={label} title={label}>{Icon ? <Icon size={label === 'Upload' ? 25 : 23} strokeWidth={active === label ? 2.5 : 1.9}/> : <Avatar image="photo-1534528741775-53994a69daeb" className="nav-avatar"/>}<span>{label}</span></button>)}</nav>
   </main>;
 }
