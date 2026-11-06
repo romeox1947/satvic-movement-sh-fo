@@ -1,7 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { MapPin, Search, SlidersHorizontal, Play, Image as ImageIcon, Video, X } from 'lucide-react';
+import { MapPin, Search, Play, Image as ImageIcon, Video, X } from 'lucide-react';
+import VisitDock from './VisitDock';
+
+const categories = [
+  { label: 'Experiences', folder: 'Experiences' },
+  { label: 'Places to visit', folder: 'Places to eat' },
+  { label: 'Places to shop', folder: 'Places to shop' },
+];
 
 function shuffle(items) {
   const result = [...items];
@@ -12,14 +19,33 @@ function shuffle(items) {
   return result;
 }
 
-export default function ExploreScreen({ onOpenReel }) {
+function VideoStill({ src }) {
+  const [still, setStill] = useState('');
+  function seekToFrame(event) {
+    const video = event.currentTarget;
+    if (video.duration) video.currentTime = Math.min(0.5, video.duration * 0.1);
+  }
+  function captureFrame(event) {
+    const video = event.currentTarget;
+    if (!video.videoWidth || !video.videoHeight) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    try { setStill(canvas.toDataURL('image/jpeg', 0.82)); } catch {}
+  }
+  return still ? <img className="place-photo-image" src={still} alt="A still from this place's video"/> : <video className="place-photo-image" src={src} muted playsInline preload="metadata" onLoadedData={seekToFrame} onSeeked={captureFrame}/>;
+}
+
+export default function ExploreScreen({ onOpenReel, initialSearch = '' }) {
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
-  const [type, setType] = useState('All');
-  const [showFilters, setShowFilters] = useState(false);
+  const [category, setCategory] = useState('Experiences');
+  const [searchAcrossCategories, setSearchAcrossCategories] = useState(false);
   const [cityMenu, setCityMenu] = useState(false);
   const [city, setCity] = useState('Pune');
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [visitPlace, setVisitPlace] = useState(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -30,28 +56,49 @@ export default function ExploreScreen({ onOpenReel }) {
     return () => controller.abort();
   }, []);
 
-  const filtered = useMemo(() => items.filter(item => {
-    const matchesCity = city === 'All locations' || item.city === city;
-    const matchesType = type === 'All' || (type === 'Photos' ? item.kind === 'photo' : item.kind === 'reel');
-    const text = `${item.title} ${item.place} ${item.creator} ${item.city}`.toLowerCase();
-    return matchesCity && matchesType && text.includes(search.toLowerCase().trim());
-  }), [items, city, type, search]);
+  useEffect(() => {
+    if (initialSearch) {
+      setSearch(initialSearch);
+      setSearchAcrossCategories(true);
+    }
+  }, [initialSearch]);
 
-  const photos = filtered.filter(item => item.kind === 'photo');
-  const reels = filtered.filter(item => item.kind === 'reel');
-  const showPhotoPlaceholder = photos.length === 0 && (type === 'All' || type === 'Photos');
-  const showReelPlaceholder = reels.length === 0 && (type === 'All' || type === 'Reels');
+  const filtered = useMemo(() => {
+    const selectedCategory = categories.find(option => option.label === category)?.folder;
+    return items.filter(item => {
+      const matchesCity = city === 'All locations' || item.city === city;
+      const matchesCategory = searchAcrossCategories || item.category === selectedCategory;
+      const text = `${item.title} ${item.place} ${item.creator} ${item.city}`.toLowerCase();
+      return matchesCity && matchesCategory && text.includes(search.toLowerCase().trim());
+    });
+  }, [items, city, category, search, searchAcrossCategories]);
+
+  const places = useMemo(() => {
+    const grouped = new Map();
+    filtered.forEach(item => {
+      if (!grouped.has(item.place)) grouped.set(item.place, []);
+      grouped.get(item.place).push(item);
+    });
+    return [...grouped.entries()].map(([place, media]) => ({ place, media }));
+  }, [filtered]);
 
   return <section className="explore-screen" aria-label="Search and explore">
-    <div className="explore-search"><Search size={18}/><input aria-label="Search places, people, videos" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search places, people, videos"/><button type="button" aria-label="Open filters" onClick={() => setShowFilters(!showFilters)}><SlidersHorizontal size={17}/></button></div>
-    {showFilters && <div className="filter-panel"><b>Show</b>{['All', 'Photos', 'Reels'].map(option => <button key={option} className={type === option ? 'active' : ''} onClick={() => setType(option)}>{option}</button>)}<span><MapPin size={12}/> Pune</span></div>}
+    <div className="explore-search"><Search size={18}/><input aria-label="Search places, people, videos" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search places, people, videos"/></div>
     <div className="explore-toolbar"><h1>Popular</h1><div className="city-filter-wrap"><button className="city-filter" onClick={() => setCityMenu(!cityMenu)}><MapPin size={14}/>{city}<span>⌄</span></button>{cityMenu && <div className="city-menu">{['Pune', 'All locations'].map(option => <button key={option} onClick={() => { setCity(option); setCityMenu(false); }}>{option}{city === option && <span>✓</span>}</button>)}</div>}</div></div>
-    <div className="explore-filters" role="tablist" aria-label="Media filters">{['All', 'Photos', 'Reels'].map(option => <button key={option} role="tab" aria-selected={type === option} className={type === option ? 'active' : ''} onClick={() => setType(option)}>{option}</button>)}</div>
-    <div className="explore-columns">
-      {(type === 'All' || type === 'Photos') && <section className="explore-column"><h2><ImageIcon size={14}/> Photos</h2><div className="explore-tiles">{photos.map((item, index) => <button className={`explore-tile photo-tile tile-${index % 3}`} key={item.id} onClick={() => setPhotoPreview(item)}><img src={item.url} alt={`${item.title} in ${item.city}`} loading="lazy"/><span className="tile-label"><b>@{item.creator}</b><small>{item.place}</small></span></button>)}{showPhotoPlaceholder && <div className="explore-placeholder photo-placeholder"><ImageIcon size={23}/><span>Photos you add<br/>will show here</span></div>}</div></section>}
-      {(type === 'All' || type === 'Reels') && <section className="explore-column"><h2><Video size={14}/> Reels</h2><div className="explore-tiles">{reels.map((item, index) => <button className={`explore-tile reel-tile tile-${index % 3}`} key={item.id} onClick={() => onOpenReel({ ...item, video: item.url })}><video src={item.url} muted playsInline preload="metadata"/><span className="tile-play"><Play size={18} fill="currentColor"/></span><span className="tile-label"><b>@{item.creator}</b><small>{item.place}</small></span></button>)}{showReelPlaceholder && <button className="explore-placeholder reel-placeholder" onClick={() => onOpenReel(null)}><Video size={23}/><span>ARAI Hills · 1<br/>@what.on.more</span><small>Drop a video into Experiences to add a reel</small></button>}</div></section>}
-    </div>
-    {filtered.length === 0 && !showPhotoPlaceholder && !showReelPlaceholder && <p className="explore-empty">No Pune posts match that search yet.</p>}
+    <div className="place-category-tabs" role="tablist" aria-label="Explore a category">{categories.map(option => <button key={option.label} role="tab" aria-selected={category === option.label} className={category === option.label ? 'active' : ''} onClick={() => { setCategory(option.label); setSearch(''); setSearchAcrossCategories(false); }}>{option.label}</button>)}</div>
+    <div className="place-groups">{places.map(({ place, media }) => {
+      const photo = media.find(item => item.kind === 'photo');
+      const reel = media.find(item => item.kind === 'reel');
+      return <section className="place-group" key={place}>
+        <div className="place-group-heading"><div><span className="section-eyebrow">{category.toUpperCase()}</span><h2>{place}</h2></div><button className="place-visit-button" onClick={() => setVisitPlace({ place, media })}><MapPin size={13}/>Visit</button></div>
+        <div className="place-group-media">
+          <div className="place-media-column"><h3><ImageIcon size={13}/> Photo</h3>{photo ? <button className="place-media-tile" onClick={() => setPhotoPreview(photo)}><img className="place-photo-image" src={photo.url} alt={`${place}`} loading="lazy"/><span className="place-media-caption">A moment here</span><span className="image-credit">© Google Maps</span></button> : reel ? <div className="place-media-tile place-generated-photo"><VideoStill src={reel.url}/><span className="place-media-caption">Place preview</span></div> : <div className="place-media-empty"><ImageIcon size={18}/><span>Photo coming soon</span></div>}</div>
+          <div className="place-media-column"><h3><Video size={13}/> Reel</h3>{reel ? <button className="place-media-tile" onClick={() => onOpenReel({ ...reel, video: reel.url })}><video className="place-photo-image" src={reel.url} muted playsInline preload="metadata"/><span className="place-play"><Play size={16} fill="currentColor"/></span><span className="place-media-caption">@{reel.creator}</span></button> : <div className="place-media-empty"><Video size={18}/><span>Reel coming soon</span></div>}</div>
+        </div>
+      </section>;
+    })}</div>
+    {filtered.length === 0 && search.trim() && <p className="explore-empty">No {category.toLowerCase()} match that search yet.</p>}
     {photoPreview && <div className="photo-lightbox" role="dialog" aria-modal="true" aria-label={photoPreview.title} onClick={() => setPhotoPreview(null)}><button aria-label="Close photo"><X size={22}/></button><img src={photoPreview.url} alt={photoPreview.title}/><span>@{photoPreview.creator} · {photoPreview.place}</span></div>}
+    {visitPlace && <VisitDock place={visitPlace.place} area="Pune, Maharashtra, India" category={category} mediaUrl={visitPlace.media.find(item => item.kind === 'photo')?.url || visitPlace.media.find(item => item.kind === 'reel')?.url} mediaType={visitPlace.media.some(item => item.kind === 'photo') ? 'image' : 'video'} isOpen onClose={() => setVisitPlace(null)} className="explore-place-dock" closeLabel="Back"/>}
   </section>;
 }
